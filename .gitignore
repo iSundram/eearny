@@ -1,0 +1,15 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+site/
+
+# runtime data (users, sessions — never commit)
+backend/data/
+backend/services/*/data/
+
+# misc
+*.log
+.DS_Store
+.env

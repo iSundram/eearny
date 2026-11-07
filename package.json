@@ -1,0 +1,19 @@
+{
+  "name": "eearny",
+  "private": true,
+  "version": "0.1.0",
+  "description": "eearny — light-theme earnings platform (frontend apps + backend services)",
+  "scripts": {
+    "dev:auth": "npm --prefix frontend/apps/auth run dev",
+    "dev:myaccount": "npm --prefix frontend/apps/myaccount run dev",
+    "dev:auth-api": "npm --prefix backend/services/auth run dev",
+    "dev:account-api": "npm --prefix backend/services/account run dev",
+    "dev": "concurrently -n auth-api,account-api,auth,myaccount -c blue,green,cyan,magenta \"npm run dev:auth-api\" \"npm run dev:account-api\" \"npm run dev:auth\" \"npm run dev:myaccount\"",
+    "build": "npm --prefix frontend/apps/auth run build && npm --prefix frontend/apps/myaccount run build",
+    "start:auth-api": "npm --prefix backend/services/auth start",
+    "start:account-api": "npm --prefix backend/services/account start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

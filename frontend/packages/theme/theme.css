@@ -1,0 +1,126 @@
+/* ============================================================
+   eearny — light theme design tokens
+   4 core colours (paper, surface, ink, line) + accent family
+   ============================================================ */
+:root {
+  /* core */
+  --paper:   #F6F5F1;  /* warm off-white page background */
+  --surface: #FFFFFF;  /* cards, inputs */
+  --ink:     #1A1D24;  /* logo ink — headings, primary text */
+  --line:    #E7E4DD;  /* hairline borders, dividers */
+
+  /* diluted ink shades */
+  --ink-soft:  #5C6068;
+  --ink-faint: #9A9DA6;
+
+  /* accents (diluted) */
+  --accent:       #6D74C4;  /* diluted indigo — primary actions */
+  --accent-deep:  #575DB0;
+  --accent-soft:  #EEF0FA;  /* tinted fills, hovers */
+
+  --mint:      #79B699;  --mint-soft:  #E9F3ED;  /* success / credits  */
+  --amber:     #DCAB66;  --amber-soft: #F9F1E2;  /* pending / warnings */
+  --rose:      #CE8686;  --rose-soft:  #F8ECEC;  /* errors / debits    */
+
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 20px;
+  --shadow-s: 0 1px 2px rgba(26, 29, 36, .05);
+  --shadow-m: 0 8px 28px rgba(26, 29, 36, .08);
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
+
+a { color: var(--accent-deep); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- shared components ---------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: 600 15px var(--font-body);
+  border-radius: var(--radius-m);
+  border: 1px solid transparent;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { background: #2B2F3A; }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-accent:hover { background: var(--accent-deep); }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--ink-faint); background: var(--surface); }
+.btn-block { width: 100%; }
+.btn[disabled] { opacity: .55; cursor: not-allowed; }
+
+.field { margin-bottom: 16px; }
+.field label {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--ink-soft); margin-bottom: 6px; letter-spacing: .01em;
+}
+.field input {
+  width: 100%; font: 400 15px var(--font-body); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-m); padding: 12px 14px; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field input::placeholder { color: var(--ink-faint); }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-l); box-shadow: var(--shadow-s);
+}
+
+.alert {
+  border-radius: var(--radius-m); padding: 11px 14px; font-size: 14px;
+  border: 1px solid transparent; margin-bottom: 16px;
+}
+.alert-error { background: var(--rose-soft); color: #9C4A4A; border-color: #EBCFCF; }
+.alert-ok    { background: var(--mint-soft); color: #3F7A5E; border-color: #CFE7DA; }
+
+.badge {
+  display: inline-block; font-size: 12px; font-weight: 600;
+  border-radius: 999px; padding: 3px 10px;
+}
+.badge-mint  { background: var(--mint-soft);  color: #3F7A5E; }
+.badge-amber { background: var(--amber-soft); color: #9A6B22; }
+.badge-rose  { background: var(--rose-soft);  color: #9C4A4A; }
+
+.muted { color: var(--ink-soft); }
+.faint { color: var(--ink-faint); }
+
+/* ---------- spinner (shared across the project) ---------- */
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: eearny-spin .7s linear infinite;
+  vertical-align: -2px;
+}
+@keyframes eearny-spin { to { transform: rotate(360deg); } }
+.btn .spinner { width: 14px; height: 14px; }
+.page-loading {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 90px 0; color: var(--ink-soft); font-size: 15px;
+}
+.page-loading .spinner { width: 20px; height: 20px; color: var(--accent); }

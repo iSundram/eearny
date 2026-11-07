@@ -1,0 +1,9 @@
+{
+  "name": "@eearny/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared dependencies for eearny backend packages (resolved by services and shared libs)",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  }
+}

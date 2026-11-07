@@ -1,0 +1,22 @@
+services:
+  auth-api:
+    build:
+      context: ./backend
+      dockerfile: services/auth/Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-eearny-dev-secret-change-me}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    restart: unless-stopped
+
+  account-api:
+    build:
+      context: ./backend
+      dockerfile: services/account/Dockerfile
+    ports:
+      - "4002:4002"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-eearny-dev-secret-change-me}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    restart: unless-stopped

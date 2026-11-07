@@ -1,0 +1,17 @@
+{
+  "name": "@eearny/auth-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "eearny auth service — register, login, session verification",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
