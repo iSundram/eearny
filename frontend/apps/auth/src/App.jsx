@@ -90,7 +90,6 @@ function PasswordStep({ email, onNotYou }) {
     <form className="card auth-card" onSubmit={submit}>
       <h2 className="auth-title">Welcome back</h2>
       <p className="muted auth-sub">Good to see you again — enter your password.</p>
-      {error && <div className="alert alert-error">{error}</div>}
       <div className="email-chip">
         <span className="email-chip-address">{email}</span>
         <button type="button" className="linklike" onClick={onNotYou}>Not you?</button>
@@ -132,7 +131,6 @@ function SignupPage() {
     <form className="card auth-card" onSubmit={submit}>
       <h2 className="auth-title">Create your account</h2>
       <p className="muted auth-sub">Set up in seconds.</p>
-      {error && <div className="alert alert-error">{error}</div>}
       <Field id="name" label="Full name" placeholder="Ada Lovelace" autoComplete="name"
         value={form.name} invalid={field === 'name'}
         onChange={(v) => setForm((f) => ({ ...f, name: v }))} />
@@ -181,7 +179,6 @@ function ForgotPage() {
     <form className="card auth-card" onSubmit={submit}>
       <h2 className="auth-title">Reset your password</h2>
       <p className="muted auth-sub">Enter the email you signed up with.</p>
-      {error && <div className="alert alert-error">{error}</div>}
       {devLink && (
         <div className="alert alert-ok">
           Reset link ready (dev mode — no mailer configured):{' '}
@@ -226,6 +223,7 @@ function ResetView({ token }) {
       notify('Password updated — all devices were signed out.', { type: 'success' });
     } catch (err) {
       setError(err.message); setField(err.field || '');
+      notify(err.message, { type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -235,7 +233,7 @@ function ResetView({ token }) {
     return (
       <div className="card auth-card">
         <h2 className="auth-title">Reset your password</h2>
-        <div className="alert alert-error">This reset link is missing its token.</div>
+        <p className="muted auth-sub">This reset link is missing its token.</p>
         <div className="auth-links"><a href="/">← Back to sign in</a></div>
         <div className="card-foot"><img src="/logo.svg" alt="eearny" /></div>
       </div>
@@ -252,7 +250,6 @@ function ResetView({ token }) {
         </>
       ) : (
         <>
-          {error && <div className="alert alert-error">{error}</div>}
           <Field id="password" label="New password" type="password" placeholder="At least 8 characters" autoComplete="new-password"
             value={form.password} invalid={field === 'password'}
             onChange={(v) => setForm((f) => ({ ...f, password: v }))} />

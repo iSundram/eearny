@@ -45,8 +45,6 @@ export default function App() {
         </div>
       </header>
 
-      {error && <div className="alert alert-error">{error}</div>}
-
       <h2 className="greeting">
         Welcome back, <em>{(user?.name || 'friend').split(' ')[0]}</em>
       </h2>
@@ -112,6 +110,7 @@ function ProfileCard({ user, onSaved, onError }) {
       notify('Profile updated.', { type: 'success' });
     } catch (err) {
       onError(err.message);
+      notify(err.message, { type: 'error' });
     } finally {
       setSavingName(false);
     }
@@ -156,7 +155,9 @@ function PasswordForm() {
     e.preventDefault();
     setError(''); setField(''); setOkNote('');
     if (form.next !== form.confirm) {
-      setError('New passwords do not match'); setField('confirm'); return;
+      setError('New passwords do not match'); setField('confirm');
+      notify('New passwords do not match', { type: 'error' });
+      return;
     }
     setBusy(true);
     try {
@@ -170,6 +171,7 @@ function PasswordForm() {
       );
     } catch (err) {
       setError(err.message); setField(err.field || '');
+      notify(err.message, { type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -178,7 +180,6 @@ function PasswordForm() {
   return (
     <form onSubmit={submit} className="pw-form">
       <h4>Change password</h4>
-      {error && <div className="alert alert-error">{error}</div>}
       <div className="field">
         <label htmlFor="pw-current">Current password</label>
         <input id="pw-current" type="password" autoComplete="current-password" value={form.current}
@@ -218,6 +219,7 @@ function SessionsPanel() {
       setSessions(list);
     } catch (err) {
       setError(err.message);
+      notify(err.message, { type: 'error' });
     }
   }
 
@@ -232,6 +234,7 @@ function SessionsPanel() {
       refresh();
     } catch (err) {
       setError(err.message);
+      notify(err.message, { type: 'error' });
     }
   }
 
@@ -243,6 +246,7 @@ function SessionsPanel() {
       refresh();
     } catch (err) {
       setError(err.message);
+      notify(err.message, { type: 'error' });
     }
   }
 
@@ -258,7 +262,6 @@ function SessionsPanel() {
           </button>
         )}
       </div>
-      {error && <div className="alert alert-error">{error}</div>}
       {!sessions && <p className="faint">Loading sessions…</p>}
       {sessions && sessions.length === 0 && <p className="faint">No active sessions.</p>}
       <ul className="session-list">
