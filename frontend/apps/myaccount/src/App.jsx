@@ -4,6 +4,7 @@ import {
   getMe, getSummary, getTransactions, updateProfile,
   changePassword, getSessions, revokeSession, revokeOtherSessions, collectDevice,
 } from './api.js';
+import { notify } from '../../../packages/toast.jsx';
 
 const money = (n, currency = 'USD') =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
@@ -23,7 +24,10 @@ export default function App() {
         setSummary(sum.summary);
         setTransactions(txs.transactions);
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => {
+        setError(err.message);
+        notify(err.message, { type: 'error' });
+      });
   }, []);
 
   if (!user && !error) {
@@ -96,7 +100,6 @@ export default function App() {
 function ProfileCard({ user, onSaved, onError }) {
   const [nameDraft, setNameDraft] = useState(user?.name || '');
   const [savingName, setSavingName] = useState(false);
-  const [savedNote, setSavedNote] = useState(false);
 
   useEffect(() => setNameDraft(user?.name || ''), [user?.name]);
 
@@ -106,8 +109,7 @@ function ProfileCard({ user, onSaved, onError }) {
     try {
       const { user: updated } = await updateProfile({ name: nameDraft });
       onSaved((u) => ({ ...u, name: updated.name }));
-      setSavedNote(true);
-      setTimeout(() => setSavedNote(false), 2500);
+      notify('Profile updated.', { type: 'success' });
     } catch (err) {
       onError(err.message);
     } finally {
@@ -127,7 +129,6 @@ function ProfileCard({ user, onSaved, onError }) {
         <button className="btn btn-primary btn-block" disabled={savingName}>
           {savingName ? <><span className="spinner" /> Saving…</> : 'Save changes'}
         </button>
-        {savedNote && <div className="alert alert-ok" style={{ marginTop: 12 }}>Profile updated.</div>}
       </form>
     </div>
   );
@@ -150,7 +151,6 @@ function PasswordForm() {
   const [error, setError] = useState('');
   const [field, setField] = useState('');
   const [busy, setBusy] = useState(false);
-  const [okNote, setOkNote] = useState('');
 
   async function submit(e) {
     e.preventDefault();
@@ -162,10 +162,11 @@ function PasswordForm() {
     try {
       const res = await changePassword(form.current, form.next);
       setForm({ current: '', next: '', confirm: '' });
-      setOkNote(
+      notify(
         res.revokedOtherSessions > 0
           ? `Password changed — ${res.revokedOtherSessions} other session${res.revokedOtherSessions === 1 ? '' : 's'} signed out.`
-          : 'Password changed.'
+          : 'Password changed.',
+        { type: 'success' }
       );
     } catch (err) {
       setError(err.message); setField(err.field || '');
@@ -178,7 +179,6 @@ function PasswordForm() {
     <form onSubmit={submit} className="pw-form">
       <h4>Change password</h4>
       {error && <div className="alert alert-error">{error}</div>}
-      {okNote && <div className="alert alert-ok">{okNote}</div>}
       <div className="field">
         <label htmlFor="pw-current">Current password</label>
         <input id="pw-current" type="password" autoComplete="current-password" value={form.current}
@@ -228,6 +228,7 @@ function SessionsPanel() {
     try {
       if (sid === currentSid) { logout(); return; }
       await revokeSession(sid);
+      notify('Session revoked — that device is signed out.', { type: 'success' });
       refresh();
     } catch (err) {
       setError(err.message);
@@ -237,7 +238,8 @@ function SessionsPanel() {
   async function revokeOthers() {
     setError('');
     try {
-      await revokeOtherSessions();
+      const res = await revokeOtherSessions();
+      notify(`Signed out ${res.revoked} other session${res.revoked === 1 ? '' : 's'}.`, { type: 'success' });
       refresh();
     } catch (err) {
       setError(err.message);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { login, register, forgotPassword, resetPassword, continueToMyAccount } from './api.js';
+import { notify } from '../../../packages/toast.jsx';
 
 // Path-based routing (works on Cloudflare Pages via public/_redirects):
 //   /        → sign in (step 1: email · step 2: password)
@@ -80,6 +81,7 @@ function PasswordStep({ email, onNotYou }) {
       continueToMyAccount(token);
     } catch (err) {
       setError(err.message);
+      notify(err.message, { type: 'error' });
       setBusy(false);
     }
   }
@@ -122,6 +124,7 @@ function SignupPage() {
       continueToMyAccount(token);
     } catch (err) {
       setError(err.message); setField(err.field || ''); setBusy(false);
+      notify(err.message, { type: 'error' });
     }
   }
 
@@ -168,6 +171,7 @@ function ForgotPage() {
       setDevLink(data.resetUrl || '');
     } catch (err) {
       setError(err.message); setField(err.field || '');
+      notify(err.message, { type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -219,6 +223,7 @@ function ResetView({ token }) {
     try {
       await resetPassword(token, form.password);
       setDone(true);
+      notify('Password updated — all devices were signed out.', { type: 'success' });
     } catch (err) {
       setError(err.message); setField(err.field || '');
     } finally {
