@@ -95,6 +95,10 @@ Note: production builds call the hosted API at https://apieearny.getvoroa.com (a
 
 User/account data is stored in JSON files under each service's `data/` (dev only).
 
-### Deploy via Docker
+### Docker
 
-`docker build -t eearny-deploy .` builds both frontends; `docker run --rm -e CLOUDFLARE_API_TOKEN -e CLOUDFLARE_ACCOUNT_ID eearny-deploy` publishes them to Cloudflare Pages (credentials at run time only). Pass `--build-arg VITE_AUTH_API_URL=… --build-arg VITE_ACCOUNT_API_URL=…` once the backends are public.
+- `Dockerfile` — **backend**: auth + account services behind one port (`/api/auth/*`, `/api/account/*`, `/health`).
+  `docker build -t eearny-backend . && docker run -p 4000:4000 -e JWT_SECRET=<long-random> -v eearny-data:/data eearny-backend`
+  (JSON data lives in the `/data` volume — mount it or it is lost on redeploy).
+- `Dockerfile.frontend` — builds both frontends and deploys them to Cloudflare Pages
+  (`docker run --rm -e CLOUDFLARE_API_TOKEN -e CLOUDFLARE_ACCOUNT_ID eearny-deploy`).

@@ -1,36 +1,35 @@
-# eearny — build both frontends and deploy them to Cloudflare Pages.
+# eearny — backend image (auth + account services behind ONE port).
+#   docker build -t eearny-backend .
+#   docker run -p 4000:4000 -e JWT_SECRET=<long-random> -v eearny-data:/data eearny-backend
 #
-#   docker build -t eearny-deploy .
-#   docker run --rm \
-#     -e CLOUDFLARE_API_TOKEN -e CLOUDFLARE_ACCOUNT_ID \
-#     eearny-deploy
-#
-# Credentials are supplied at run time only — never baked into the image.
-# Override build-time URLs with --build-arg (e.g. once the backends are public).
+# Routes: /api/auth/* -> auth service, /api/account/* -> account service, /health.
+# (The frontend → Cloudflare Pages deploy image lives in Dockerfile.frontend.)
 FROM node:22-alpine
 WORKDIR /app
 
-ARG SITE_URL=https://eearny.pages.dev
-ARG VITE_AUTH_API_URL=https://apieearny.getvoroa.com
-ARG VITE_ACCOUNT_API_URL=https://apieearny.getvoroa.com
-ENV PAGES_PROJECT=eearny PAGES_BRANCH=main
+# shared backend deps (jsonwebtoken, used by packages/jwt-auth.js)
+COPY backend/package.json backend/package-lock.json ./
+RUN npm ci --omit=dev
 
-# deps first (cache-friendly)
-COPY frontend/apps/auth/package.json frontend/apps/auth/package-lock.json ./frontend/apps/auth/
-COPY frontend/apps/myaccount/package.json frontend/apps/myaccount/package-lock.json ./frontend/apps/myaccount/
-RUN npm ci --prefix frontend/apps/auth && npm ci --prefix frontend/apps/myaccount \
- && npm install -g wrangler@4
+# per-service deps
+COPY backend/services/auth/package.json backend/services/auth/package-lock.json ./services/auth/
+COPY backend/services/account/package.json backend/services/account/package-lock.json ./services/account/
+RUN npm ci --prefix services/auth --omit=dev && npm ci --prefix services/account --omit=dev
 
-COPY frontend ./frontend
+# shared code + sources
+COPY backend/packages ./packages
+COPY backend/services/auth/src ./services/auth/src
+COPY backend/services/account/src ./services/account/src
+COPY backend/gateway.js ./gateway.js
 
-# build + merge (same layout as .github/workflows/frontend.yml)
-RUN cd frontend/apps/auth \
-      && VITE_MYACCOUNT_URL=$SITE_URL/myaccount/ VITE_AUTH_API_URL=$VITE_AUTH_API_URL npx vite build \
- && cd ../myaccount \
-      && BASE_PATH=/myaccount/ VITE_AUTH_URL=$SITE_URL VITE_AUTH_API_URL=$VITE_AUTH_API_URL VITE_ACCOUNT_API_URL=$VITE_ACCOUNT_API_URL npx vite build \
- && cd /app && mkdir -p site/myaccount site/signup site/forgot \
- && cp -r frontend/apps/auth/dist/* site/ \
- && cp -r frontend/apps/myaccount/dist/* site/myaccount/ \
- && cp site/index.html site/signup/index.html && cp site/index.html site/forgot/index.html
+# JSON-file data → one persistent volume (symlinks keep the code's relative data dirs working)
+RUN mkdir -p /data/auth /data/account /data/sessions \
+ && ln -s /data/auth services/auth/data \
+ && ln -s /data/account services/account/data \
+ && ln -s /data/sessions data
+VOLUME /data
 
-CMD ["sh", "-c", ": \"${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN}\" \"${CLOUDFLARE_ACCOUNT_ID:?set CLOUDFLARE_ACCOUNT_ID}\"; wrangler pages deploy site --project-name=$PAGES_PROJECT --branch=$PAGES_BRANCH --commit-dirty=true"]
+ENV NODE_ENV=production PORT=4000
+EXPOSE 4000
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:4000/health || exit 1
+CMD ["node", "gateway.js"]
