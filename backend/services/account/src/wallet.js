@@ -271,6 +271,7 @@ function setDefaultMethod(id, who, methodId) {
     const m = u.methods.find((x) => x.id === methodId);
     if (!m) throw new WalletError('Payment method not found', undefined, 404);
     u.methods.forEach((x) => { x.isDefault = x.id === methodId; });
+    notify(u, 'account', 'Default payout method updated', `${m.label} is now your default payout method.`);
     return u.methods;
   });
 }
@@ -409,6 +410,9 @@ function redeemReferral(id, who, rawCode) {
 }
 
 // ---- notifications ----
+function pushNotification(id, who, category, title, body) {
+  return withUser(id, who, (u) => { notify(u, category, title, body); });
+}
 function listNotifications(id, who) {
   return withUser(id, who, (u) => ({ notifications: u.notifications, unread: u.notifications.filter((n) => !n.read).length }));
 }
@@ -443,5 +447,5 @@ module.exports = {
   listMethods, addMethod, removeMethod, setDefaultMethod,
   listInvestments, invest, getCheckin, checkin, getLucky, spin,
   getReferrals, redeemReferral,
-  listNotifications, unreadCount, markRead, markAllRead, deleteNotification, clearNotifications, getPrefs, setPrefs,
+  pushNotification, listNotifications, unreadCount, markRead, markAllRead, deleteNotification, clearNotifications, getPrefs, setPrefs,
 };

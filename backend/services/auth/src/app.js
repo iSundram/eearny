@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const { signToken, verifyToken, authRequired } = require('../../../packages/jwt-auth');
+const { rateLimit } = require('../../../packages/rate-limit');
+let wallet = null;
+try { wallet = require('../../account/src/wallet'); } catch {}
 const sessions = require('../../../packages/session-store');
 const store = require('./store');
 const { normalizeDevice } = require('./device');
@@ -9,6 +12,9 @@ const { normalizeDevice } = require('./device');
 const app = express();
 app.use(cors());
 app.use(express.json());
+const loginLimit = rateLimit({ name: 'auth-login', windowMs: 15 * 60 * 1000, max: 15 });
+const registerLimit = rateLimit({ name: 'auth-register', windowMs: 15 * 60 * 1000, max: 8 });
+const forgotLimit = rateLimit({ name: 'auth-forgot', windowMs: 15 * 60 * 1000, max: 6 });
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const APP_URL = process.env.AUTH_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://eearny.pages.dev' : 'http://localhost:5173');
@@ -26,7 +32,7 @@ app.get('/health', (_req, res) => res.json({ ok: true, service: 'auth' }));
 
 // ---------- registration & login ----------
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', registerLimit, async (req, res) => {
   const { name, email, password } = req.body || {};
   if (!name || !String(name).trim()) return res.status(400).json({ error: 'Name is required', field: 'name' });
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address', field: 'email' });
@@ -35,11 +41,13 @@ app.post('/api/auth/register', async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = store.createUser({ name: String(name).trim(), email, passwordHash });
-  const session = sessions.createSession(user.id, normalizeDevice(req.body?.device, req));
+  const dev = normalizeDevice(req.body?.device, req);
+  const session = sessions.createSession(user.id, dev);
+  if (wallet) wallet.pushNotification(user.id, user, 'account', 'Welcome to eearny', `Account created on ${dev.browser} · ${dev.os}.`);
   res.status(201).json({ token: signToken(user, session.sid), sid: session.sid, user: publicUser(user) });
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimit, async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address', field: 'email' });
   if (!password) return res.status(400).json({ error: 'Password is required', field: 'password' });
@@ -56,7 +64,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Always 200 (never reveal whether the email exists). In dev there is no mailer,
 // so the reset link is returned here — replace with an email send in production.
-app.post('/api/auth/forgot-password', (req, res) => {
+app.post('/api/auth/forgot-password', forgotLimit, (req, res) => {
   const { email } = req.body || {};
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address', field: 'email' });
   const user = store.findUserByEmail(email);
@@ -65,7 +73,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
   res.json({ ok: true, resetUrl: `${APP_URL}/?reset=${record.token}` });
 });
 
-app.post('/api/auth/reset-password', async (req, res) => {
+app.post('/api/auth/reset-password', forgotLimit, async (req, res) => {
   const { token, password } = req.body || {};
   if (!token) return res.status(400).json({ error: 'Reset token is missing', field: 'token' });
   if (!password || password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters', field: 'password' });
@@ -95,6 +103,7 @@ app.post('/api/auth/change-password', authRequired, async (req, res) => {
   store.updatePassword(user.id, await bcrypt.hash(newPassword, 10));
   // keep the current device signed in, sign out everywhere else
   const revoked = sessions.revokeAllForUser(user.id, req.user.sid);
+  if (wallet) wallet.pushNotification(user.id, user, 'account', 'Password updated', revoked > 0 ? `Your password was changed and ${revoked} other session(s) were signed out.` : 'Your account password was changed.');
   res.json({ ok: true, revokedOtherSessions: revoked });
 });
 
@@ -108,12 +117,14 @@ app.delete('/api/auth/sessions/:sid', authRequired, (req, res) => {
   const target = sessions.findActive(req.params.sid);
   if (!target || target.userId !== req.user.sub) return res.status(404).json({ error: 'Session not found' });
   sessions.revoke(req.params.sid);
+  if (wallet) wallet.pushNotification(req.user.sub, req.user, 'account', 'Device session revoked', `${target.browser} · ${target.os} was signed out.`);
   res.json({ ok: true });
 });
 
 // Revoke every other session ("sign out everywhere else").
 app.delete('/api/auth/sessions', authRequired, (req, res) => {
   const revoked = sessions.revokeAllForUser(req.user.sub, req.user.sid);
+  if (wallet && revoked > 0) wallet.pushNotification(req.user.sub, req.user, 'account', 'Sessions signed out', `${revoked} other device session(s) were revoked.`);
   res.json({ ok: true, revoked });
 });
 
