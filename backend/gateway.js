@@ -6,7 +6,7 @@ const accountApp = require('./services/account/src/app');
 
 const server = http.createServer((req, res) => {
   const url = req.url || '/';
-  if (url === '/health' || url === '/') {
+  if (['/', '/health', '/healthz', '/api/health'].includes(url.split('?')[0])) {
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({ ok: true, services: ['auth', 'account'] }));
   }
@@ -18,4 +18,6 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => console.log(`[eearny] backend gateway listening on :${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`[eearny] backend gateway listening on 0.0.0.0:${PORT}`));
+process.on('uncaughtException', (e) => console.error('[eearny] uncaught', e));
+process.on('unhandledRejection', (e) => console.error('[eearny] unhandled', e));

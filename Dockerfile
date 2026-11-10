@@ -2,6 +2,7 @@
 #   docker build -t eearny-backend .
 #   docker run -p 4000:4000 -e JWT_SECRET=<long-random> -v eearny-data:/data eearny-backend
 #
+# PORT is injected by the host (default 4000); no baked-in HEALTHCHECK so it can't disagree with it.
 # Routes: /api/auth/* -> auth service, /api/account/* -> account service, /health.
 # (The frontend → Cloudflare Pages deploy image lives in Dockerfile.frontend.)
 FROM node:22-alpine
@@ -31,5 +32,4 @@ VOLUME /data
 
 ENV NODE_ENV=production PORT=4000
 EXPOSE 4000
-HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:4000/health || exit 1
 CMD ["node", "gateway.js"]
