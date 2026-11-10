@@ -21,13 +21,13 @@ jobs:
         working-directory: frontend/apps/auth
         run: |
           npm ci
-          VITE_MYACCOUNT_URL=https://eearny.pages.dev/myaccount/ npx vite build
+          npx vite build
 
       - name: Build myaccount app
         working-directory: frontend/apps/myaccount
         run: |
           npm ci
-          BASE_PATH=/myaccount/ VITE_AUTH_URL=https://eearny.pages.dev npx vite build
+          BASE_PATH=/myaccount/ npx vite build
 
       - name: Merge deploy directory
         run: |
@@ -36,6 +36,7 @@ jobs:
           cp -r frontend/apps/myaccount/dist/* site/myaccount/
           cp site/index.html site/signup/index.html
           cp site/index.html site/forgot/index.html
+          for d in invest notifications account account/overview account/transactions account/payment account/settings; do mkdir -p "site/myaccount/$d" && cp site/myaccount/index.html "site/myaccount/$d/index.html"; done
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

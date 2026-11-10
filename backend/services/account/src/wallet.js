@@ -8,9 +8,11 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const kvSync = require('../../../packages/kv-sync');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DB_FILE = process.env.WALLET_DB_FILE || path.join(DATA_DIR, 'wallet.json');
+kvSync.registerStore('eearny:wallet', DB_FILE);
 
 const CURRENCY = 'INR';
 const DAY_MS = Number(process.env.REVENUE_DAY_MS) || 24 * 60 * 60 * 1000; // override to demo accrual quickly
@@ -63,7 +65,9 @@ function load() {
 }
 function save(db) {
   fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+  const raw = JSON.stringify(db, null, 2);
+  fs.writeFileSync(DB_FILE, raw);
+  kvSync.pushToCloud('eearny:wallet', raw);
 }
 
 function newCode(db) {

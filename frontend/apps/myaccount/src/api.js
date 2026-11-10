@@ -2,7 +2,7 @@ import { collectDevice } from '../../../packages/fingerprint.js';
 
 const API_BASE = import.meta.env.VITE_ACCOUNT_API_URL || 'http://localhost:4002';
 const AUTH_API_BASE = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:4001';
-const AUTH_URL = import.meta.env.VITE_AUTH_URL || 'http://localhost:5173';
+const AUTH_URL = import.meta.env.VITE_AUTH_URL || (import.meta.env.PROD ? window.location.origin : 'http://localhost:5173');
 
 const TOKEN_KEY = 'eearny_token';
 
@@ -10,6 +10,8 @@ const TOKEN_KEY = 'eearny_token';
 export function captureTokenFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
+  const ref = params.get('ref');
+  if (ref) { sessionStorage.setItem('eearny_pending_ref', ref); params.delete('ref'); }
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
     params.delete('token');

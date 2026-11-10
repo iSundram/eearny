@@ -1,9 +1,11 @@
 // JSON-file store for account profile overrides (wallet data lives in wallet.js).
 const fs = require('fs');
 const path = require('path');
+const kvSync = require('../../../packages/kv-sync');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'accounts.json');
+kvSync.registerStore('eearny:accounts', DB_FILE);
 
 function load() {
   try {
@@ -15,7 +17,9 @@ function load() {
 
 function save(db) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+  const raw = JSON.stringify(db, null, 2);
+  fs.writeFileSync(DB_FILE, raw);
+  kvSync.pushToCloud('eearny:accounts', raw);
 }
 
 function getProfile(userId) {

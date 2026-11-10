@@ -25,12 +25,13 @@ COPY frontend ./frontend
 
 # build + merge (same layout as .github/workflows/frontend.yml)
 RUN cd frontend/apps/auth \
-      && VITE_MYACCOUNT_URL=$SITE_URL/myaccount/ VITE_AUTH_API_URL=$VITE_AUTH_API_URL npx vite build \
+      && VITE_AUTH_API_URL=$VITE_AUTH_API_URL npx vite build \
  && cd ../myaccount \
-      && BASE_PATH=/myaccount/ VITE_AUTH_URL=$SITE_URL VITE_AUTH_API_URL=$VITE_AUTH_API_URL VITE_ACCOUNT_API_URL=$VITE_ACCOUNT_API_URL npx vite build \
+      && BASE_PATH=/myaccount/ VITE_AUTH_API_URL=$VITE_AUTH_API_URL VITE_ACCOUNT_API_URL=$VITE_ACCOUNT_API_URL npx vite build \
  && cd /app && mkdir -p site/myaccount site/signup site/forgot \
  && cp -r frontend/apps/auth/dist/* site/ \
  && cp -r frontend/apps/myaccount/dist/* site/myaccount/ \
- && cp site/index.html site/signup/index.html && cp site/index.html site/forgot/index.html
+ && cp site/index.html site/signup/index.html && cp site/index.html site/forgot/index.html \
+ && for d in invest notifications account account/overview account/transactions account/payment account/settings; do mkdir -p "site/myaccount/$d" && cp site/myaccount/index.html "site/myaccount/$d/index.html"; done
 
 CMD ["sh", "-c", ": \"${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN}\" \"${CLOUDFLARE_ACCOUNT_ID:?set CLOUDFLARE_ACCOUNT_ID}\"; wrangler pages deploy site --project-name=$PAGES_PROJECT --branch=$PAGES_BRANCH --commit-dirty=true"]

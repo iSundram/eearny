@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const APP_URL = process.env.AUTH_APP_URL || 'http://localhost:5173';
+const APP_URL = process.env.AUTH_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://eearny.pages.dev' : 'http://localhost:5173');
 
 function publicUser(u) {
   return { id: u.id, name: u.name, email: u.email, createdAt: u.createdAt };

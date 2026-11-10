@@ -1,7 +1,7 @@
 import { collectDevice } from '../../../packages/fingerprint.js';
 
 const API_BASE = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:4001';
-const MYACCOUNT_URL = import.meta.env.VITE_MYACCOUNT_URL || 'http://localhost:5174';
+const MYACCOUNT_URL = import.meta.env.VITE_MYACCOUNT_URL || (import.meta.env.PROD ? `${window.location.origin}/myaccount` : 'http://localhost:5174');
 
 async function call(path, body) {
   const res = await fetch(API_BASE + path, {
@@ -35,5 +35,8 @@ export function resetPassword(token, password) {
 }
 
 export function continueToMyAccount(token) {
-  window.location.href = `${MYACCOUNT_URL}/?token=${encodeURIComponent(token)}`;
+  const base = MYACCOUNT_URL.replace(/\/+$/, '');
+  const ref = new URLSearchParams(window.location.search).get('ref') || sessionStorage.getItem('eearny_ref') || '';
+  const refQuery = ref ? `&ref=${encodeURIComponent(ref)}` : '';
+  window.location.href = `${base}/?token=${encodeURIComponent(token)}${refQuery}`;
 }

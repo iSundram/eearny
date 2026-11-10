@@ -2,7 +2,7 @@
 // Usage:  notify('Profile updated.', { type: 'success' })   // anywhere in the app
 //         <ToastHost />                                     // rendered once at the root
 // Default behaviour: bottom-left panel, auto-dismiss after 8s with a draining
-// progress bar, manual dismiss via the ✕ button.
+// progress bar, manual dismiss via the close button.
 import React, { useEffect, useState } from 'react';
 
 let listeners = [];
@@ -49,7 +49,9 @@ function Toast({ toast, onDismiss }) {
     <div className={`toast toast-${toast.type}`} role="status">
       <span className="toast-msg">{toast.message}</span>
       <button type="button" className="toast-close" onClick={onDismiss} aria-label="Dismiss notification">
-        ✕
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18" />
+        </svg>
       </button>
       <div className="toast-progress" style={{ animationDuration: `${toast.duration}ms` }} />
     </div>

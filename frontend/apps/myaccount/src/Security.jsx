@@ -4,6 +4,7 @@ import {
   getSessions, revokeSession, revokeOtherSessions, collectDevice,
 } from './api.js';
 import { notify } from '../../../packages/toast.jsx';
+import { Icon } from './ui.jsx';
 
 /* ---------- profile ---------- */
 
@@ -30,14 +31,18 @@ export function ProfileCard({ user, onSaved, onError }) {
 
   return (
     <div className="card profile-card">
-      <h3>Profile</h3>
-      <p className="muted">{user?.email}</p>
+      <div className="section-head">
+        <div>
+          <h3>Profile details</h3>
+          <p className="muted section-sub">{user?.email}</p>
+        </div>
+      </div>
       <form onSubmit={saveName}>
         <div className="field">
           <label htmlFor="display-name">Display name</label>
           <input id="display-name" value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} />
         </div>
-        <button className="btn btn-primary btn-block" disabled={savingName}>
+        <button className="btn btn-primary" disabled={savingName}>
           {savingName ? <><span className="spinner" /> Saving…</> : 'Save changes'}
         </button>
       </form>
@@ -50,7 +55,12 @@ export function ProfileCard({ user, onSaved, onError }) {
 export function SecurityCard() {
   return (
     <div className="card security-card">
-      <h3>Security</h3>
+      <div className="section-head">
+        <div>
+          <h3>Security &amp; sessions</h3>
+          <p className="muted section-sub">Manage credentials and active device authorizations</p>
+        </div>
+      </div>
       <PasswordForm />
       <SessionsPanel />
     </div>
@@ -112,6 +122,7 @@ function PasswordForm() {
             onChange={(e) => setForm((f) => ({ ...f, confirm: e.target.value }))} />
         </div>
       </div>
+      {error && <div className="field-error" style={{ marginBottom: 12 }}>{error}</div>}
       <button className="btn btn-primary" disabled={busy}>
         {busy ? <><span className="spinner" /> Updating…</> : 'Update password'}
       </button>
@@ -121,16 +132,14 @@ function PasswordForm() {
 
 function SessionsPanel() {
   const [sessions, setSessions] = useState(null);
-  const [error, setError] = useState('');
   const currentSid = getCurrentSid();
-  const thisDevice = collectDevice(); // for friendly labels on the current row
+  collectDevice();
 
   async function refresh() {
     try {
       const { sessions: list } = await getSessions();
       setSessions(list);
     } catch (err) {
-      setError(err.message);
       notify(err.message, { type: 'error' });
     }
   }
@@ -138,26 +147,22 @@ function SessionsPanel() {
   useEffect(() => { refresh(); }, []);
 
   async function revokeOne(sid) {
-    setError('');
     try {
       if (sid === currentSid) { logout(); return; }
       await revokeSession(sid);
       notify('Session revoked — that device is signed out.', { type: 'success' });
       refresh();
     } catch (err) {
-      setError(err.message);
       notify(err.message, { type: 'error' });
     }
   }
 
   async function revokeOthers() {
-    setError('');
     try {
       const res = await revokeOtherSessions();
       notify(`Signed out ${res.revoked} other session${res.revoked === 1 ? '' : 's'}.`, { type: 'success' });
       refresh();
     } catch (err) {
-      setError(err.message);
       notify(err.message, { type: 'error' });
     }
   }
@@ -167,7 +172,7 @@ function SessionsPanel() {
   return (
     <div className="sessions-panel">
       <div className="sessions-head">
-        <h4>Devices &amp; sessions</h4>
+        <h4>Active devices</h4>
         {others > 0 && (
           <button className="linklike" onClick={revokeOthers}>
             Sign out {others} other session{others === 1 ? '' : 's'}
@@ -182,15 +187,20 @@ function SessionsPanel() {
           const label = isCurrent ? `${s.browser} · ${s.os} (this device)` : `${s.browser} · ${s.os}`;
           return (
             <li key={s.sid} className={isCurrent ? 'current' : ''}>
+              <div className="session-device-icon">
+                <Icon name={s.deviceType === 'mobile' ? 'smartphone' : 'monitor'} size={18} />
+              </div>
               <div className="session-main">
-                <span className="session-label">{label}</span>
-                {isCurrent && <span className="badge badge-mint">active now</span>}
+                <div className="session-label-row">
+                  <span className="session-label">{label}</span>
+                  {isCurrent && <span className="badge badge-mint"><span className="status-dot" />Active now</span>}
+                </div>
                 <span className="faint session-meta">
-                  {s.deviceType === 'mobile' ? '📱' : '💻'} {s.screen || '—'} · {s.timezone || '—'}
+                  {s.screen || '—'} · {s.timezone || '—'}
                   {s.ip ? ` · IP ${s.ip}` : ''}
                 </span>
                 <span className="faint session-meta">
-                  last seen {new Date(s.lastSeenAt).toLocaleString()} · fp {s.fingerprint || '—'}
+                  Last active {new Date(s.lastSeenAt).toLocaleString()} · ID {s.fingerprint || '—'}
                 </span>
               </div>
               <button className="btn btn-ghost btn-small" onClick={() => revokeOne(s.sid)}>
@@ -201,11 +211,8 @@ function SessionsPanel() {
         })}
       </ul>
       <p className="faint sessions-note">
-        Each sign-in is fingerprinted (browser, OS, screen, timezone, language, canvas hash)
-        so you can recognise and revoke any device. Revoking a session invalidates its token
-        on every service immediately.
+        Every sign-in is fingerprinted across browser, OS, display, timezone, and canvas signature so you can audit and revoke access immediately.
       </p>
     </div>
   );
 }
-

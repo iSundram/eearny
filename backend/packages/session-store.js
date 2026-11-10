@@ -4,9 +4,11 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const kvSync = require('./kv-sync');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'sessions.json');
+kvSync.registerStore('eearny:sessions', DB_FILE);
 
 function load() {
   try {
@@ -18,7 +20,9 @@ function load() {
 
 function save(db) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+  const raw = JSON.stringify(db, null, 2);
+  fs.writeFileSync(DB_FILE, raw);
+  kvSync.pushToCloud('eearny:sessions', raw);
 }
 
 // device: { ip, userAgent, browser, os, deviceType, screen, timezone, language, fingerprint }

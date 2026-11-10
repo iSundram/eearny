@@ -1,2 +1,6 @@
 /signup /signup/ 301
 /forgot /forgot/ 301
+/myaccount /myaccount/ 301
+/myaccount/* /myaccount/index.html 200
+/signup/* /index.html 200
+/forgot/* /index.html 200

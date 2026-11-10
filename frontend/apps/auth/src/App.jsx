@@ -12,6 +12,12 @@ const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
 export default function App() {
   useEffect(() => {
+    const r = new URLSearchParams(window.location.search).get('ref');
+    if (r) { sessionStorage.setItem('eearny_ref', r); if (path === '/') { window.location.replace(`/signup/?ref=${encodeURIComponent(r)}`); return; } }
+    if (path === '/' && !new URLSearchParams(window.location.search).get('reset') && localStorage.getItem('eearny_token')) {
+      continueToMyAccount(localStorage.getItem('eearny_token'));
+      return;
+    }
     const titles = {
       '/': 'Sign in — eearny',
       '/signup': 'Create account — eearny',
@@ -55,7 +61,7 @@ function LoginFlow() {
       <Field id="email" label="Email" type="email" placeholder="you@example.com" autoComplete="email"
         value={email} onChange={setEmail} autoFocus />
       <button className="btn btn-accent btn-block" disabled={!email.trim()}>
-        Continue <span className="btn-arrow">→</span>
+        Continue
       </button>
       <div className="auth-links split">
         <a href="/signup/">Create an account</a>
@@ -191,7 +197,7 @@ function ForgotPage() {
         {busy ? <><span className="spinner" /> Sending…</> : 'Send reset link'}
       </button>
       <div className="auth-links">
-        <a href="/">← Back to sign in</a>
+        <a href="/">Back to sign in</a>
       </div>
       <div className="card-foot"><img src="/logo.svg" alt="eearny" /></div>
     </form>
@@ -234,7 +240,7 @@ function ResetView({ token }) {
       <div className="card auth-card">
         <h2 className="auth-title">Reset your password</h2>
         <p className="muted auth-sub">This reset link is missing its token.</p>
-        <div className="auth-links"><a href="/">← Back to sign in</a></div>
+        <div className="auth-links"><a href="/">Back to sign in</a></div>
         <div className="card-foot"><img src="/logo.svg" alt="eearny" /></div>
       </div>
     );
