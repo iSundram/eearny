@@ -69,9 +69,7 @@ cp -r frontend/apps/myaccount/dist/* /tmp/eearny-site/myaccount/
 npx wrangler pages deploy /tmp/eearny-site --project-name=eearny --branch=main
 ```
 
-Note: the frontends call the backend APIs (`auth` on :4001, `account` on :4002), which currently
-run locally — set `VITE_AUTH_API_URL` / `VITE_ACCOUNT_API_URL` at build time once the backends
-are hosted somewhere public.
+Note: production builds call the hosted API at https://apieearny.getvoroa.com (auth + account behind one host, set in each app's `.env.production`); local dev still defaults to :4001 / :4002.
 
 ## How auth flows
 

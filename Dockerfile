@@ -11,8 +11,8 @@ FROM node:22-alpine
 WORKDIR /app
 
 ARG SITE_URL=https://eearny.pages.dev
-ARG VITE_AUTH_API_URL=http://localhost:4001
-ARG VITE_ACCOUNT_API_URL=http://localhost:4002
+ARG VITE_AUTH_API_URL=https://apieearny.getvoroa.com
+ARG VITE_ACCOUNT_API_URL=https://apieearny.getvoroa.com
 ENV PAGES_PROJECT=eearny PAGES_BRANCH=main
 
 # deps first (cache-friendly)
