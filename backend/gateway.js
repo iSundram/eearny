@@ -19,5 +19,6 @@ const server = http.createServer((req, res) => {
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, '0.0.0.0', () => console.log(`[eearny] backend gateway listening on 0.0.0.0:${PORT}`));
+server.on('error', (e) => { console.error('[eearny] listen failed', e); process.exit(1); });
 process.on('uncaughtException', (e) => console.error('[eearny] uncaught', e));
 process.on('unhandledRejection', (e) => console.error('[eearny] unhandled', e));
