@@ -74,11 +74,43 @@ const auth = (path, options) => call(AUTH_API_BASE, path, options);
 
 export const getMe = () => account('/api/account/me');
 export const getSummary = () => account('/api/account/summary');
-export const getTransactions = () => account('/api/account/transactions');
+export const getTransactions = (category = 'all') => account(`/api/account/transactions?category=${category}`);
 
 export function updateProfile(patch) {
   return account('/api/account/me', { method: 'PATCH', body: JSON.stringify(patch) });
 }
+
+const j = (method, body) => ({ method, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
+
+export const getConfig = () => account('/api/account/config');
+export const topUp = (amount, methodId) => account('/api/account/topup', j('POST', { amount, methodId }));
+export const withdraw = (amount, methodId) => account('/api/account/withdraw', j('POST', { amount, methodId }));
+
+export const getMethods = () => account('/api/account/methods');
+export const addMethod = (m) => account('/api/account/methods', j('POST', m));
+export const removeMethod = (id) => account(`/api/account/methods/${id}`, j('DELETE'));
+export const setDefaultMethod = (id) => account(`/api/account/methods/${id}/default`, j('POST'));
+
+export const getPlans = () => account('/api/account/plans');
+export const getInvestments = () => account('/api/account/investments');
+export const invest = (planId, units, source) => account('/api/account/invest', j('POST', { planId, units, source }));
+
+export const getCheckin = () => account('/api/account/checkin');
+export const doCheckin = () => account('/api/account/checkin', j('POST'));
+export const getLucky = () => account('/api/account/lucky');
+export const spinLucky = () => account('/api/account/lucky/spin', j('POST'));
+
+export const getReferrals = () => account('/api/account/referrals');
+export const redeemReferral = (code) => account('/api/account/referrals/redeem', j('POST', { code }));
+
+export const getNotifications = () => account('/api/account/notifications');
+export const getUnreadCount = () => account('/api/account/notifications/unread-count');
+export const markNotificationRead = (id) => account(`/api/account/notifications/${id}/read`, j('POST'));
+export const markAllNotificationsRead = () => account('/api/account/notifications/read-all', j('POST'));
+export const deleteNotification = (id) => account(`/api/account/notifications/${id}`, j('DELETE'));
+export const clearNotifications = () => account('/api/account/notifications', j('DELETE'));
+export const getNotificationPrefs = () => account('/api/account/notification-prefs');
+export const setNotificationPrefs = (p) => account('/api/account/notification-prefs', j('PUT', p));
 
 export function changePassword(currentPassword, newPassword) {
   return auth('/api/auth/change-password', {

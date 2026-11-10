@@ -96,3 +96,7 @@ are hosted somewhere public.
 - `VITE_ACCOUNT_API_URL`, `VITE_AUTH_URL` — myaccount app
 
 User/account data is stored in JSON files under each service's `data/` (dev only).
+
+### Deploy via Docker
+
+`docker build -t eearny-deploy .` builds both frontends; `docker run --rm -e CLOUDFLARE_API_TOKEN -e CLOUDFLARE_ACCOUNT_ID eearny-deploy` publishes them to Cloudflare Pages (credentials at run time only). Pass `--build-arg VITE_AUTH_API_URL=… --build-arg VITE_ACCOUNT_API_URL=…` once the backends are public.
