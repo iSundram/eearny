@@ -1,5 +1,5 @@
 // Single-port entrypoint: serves the auth and account services behind one host
-// (e.g. apieearny.getvoroa.com). /api/auth/* -> auth, /api/account/* -> account.
+// (e.g. apieearny.onvoroa.com). /api/auth/* -> auth, /api/account/* -> account.
 const http = require('http');
 const authApp = require('./services/auth/src/app');
 const accountApp = require('./services/account/src/app');

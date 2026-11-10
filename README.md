@@ -69,7 +69,7 @@ cp -r frontend/apps/myaccount/dist/* /tmp/eearny-site/myaccount/
 npx wrangler pages deploy /tmp/eearny-site --project-name=eearny --branch=main
 ```
 
-Note: production builds call the hosted API at https://apieearny.getvoroa.com (auth + account behind one host, set in each app's `.env.production`); local dev still defaults to :4001 / :4002.
+Note: production builds call the hosted API at https://apieearny.onvoroa.com (auth + account behind one host, set in each app's `.env.production`); local dev still defaults to :4001 / :4002.
 
 ## How auth flows
 
