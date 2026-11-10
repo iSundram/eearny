@@ -18,9 +18,8 @@ const parseRoute = () => {
     const [t, sub] = window.location.hash.slice(2).split('/');
     if (TABS.some((x) => x.id === t)) return { tab: t, sub: sub || undefined };
   }
-  const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
-  const rel = window.location.pathname.slice(base.length).replace(/^\/+|\/+$/g, '');
-  const [t, sub] = rel.split('/');
+  const clean = window.location.pathname.replace(/^\/myaccount(?=\/|$)/, '').replace(/^\/+|\/+$/g, '');
+  const [t, sub] = clean.split('/');
   return { tab: TABS.some((x) => x.id === t) ? t : 'home', sub: sub || undefined };
 };
 
@@ -37,8 +36,7 @@ export default function App() {
   }, []);
 
   const go = useCallback((tab, sub) => {
-    const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
-    const nextPath = tab === 'home' && !sub ? `${base}/` : `${base}/${tab}${sub ? '/' + sub : ''}`;
+    const nextPath = `/${tab}${sub ? '/' + sub : ''}`;
     window.history.pushState({}, '', nextPath);
     setRoute({ tab, sub: sub || undefined });
     window.scrollTo({ top: 0 });
@@ -57,6 +55,10 @@ export default function App() {
   useEffect(() => {
     captureTokenFromUrl();
     if (!getToken()) { logout(); return; }
+    if (window.location.pathname === '/' || window.location.pathname.startsWith('/myaccount')) {
+      const r = parseRoute();
+      window.history.replaceState({}, '', `/${r.tab}${r.sub ? '/' + r.sub : ''}`);
+    }
     const pendingRef = sessionStorage.getItem('eearny_pending_ref');
     if (pendingRef) {
       sessionStorage.removeItem('eearny_pending_ref');

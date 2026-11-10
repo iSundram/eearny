@@ -1,6 +1,15 @@
 /signup /signup/ 301
 /forgot /forgot/ 301
-/myaccount /myaccount/ 301
-/myaccount/* /myaccount/index.html 200
+/myaccount /home 301
+/myaccount/ /home 301
+/myaccount/* /:splat 301
+/home /home/index.html 200
+/home/* /home/index.html 200
+/invest /invest/index.html 200
+/invest/* /invest/index.html 200
+/notifications /notifications/index.html 200
+/notifications/* /notifications/index.html 200
+/account /account/index.html 200
+/account/* /account/index.html 200
 /signup/* /index.html 200
 /forgot/* /index.html 200

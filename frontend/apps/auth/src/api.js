@@ -1,7 +1,7 @@
 import { collectDevice } from '../../../packages/fingerprint.js';
 
 const API_BASE = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:4001';
-const MYACCOUNT_URL = import.meta.env.VITE_MYACCOUNT_URL || (import.meta.env.PROD ? `${window.location.origin}/myaccount` : 'http://localhost:5174');
+const MYACCOUNT_URL = import.meta.env.VITE_MYACCOUNT_URL || (import.meta.env.PROD ? `${window.location.origin}/home` : 'http://localhost:5174/home');
 
 async function call(path, body) {
   const res = await fetch(API_BASE + path, {
